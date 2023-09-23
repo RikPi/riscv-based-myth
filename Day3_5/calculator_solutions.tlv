@@ -8,7 +8,7 @@
    // Second calculator exercise (Using output of previous cycle)
    // See: https://makerchip.com/sandbox/0yPfNhMDo/0r0hqv
    //
-   // Third calculator exercise (MUX in @2 with $valid signal)
+   // Third calculator exercise (Two-cycle calculator)
    // See: https://makerchip.com/sandbox/0yPfNhMDo/0pghkk
    // =================================================
 \SV

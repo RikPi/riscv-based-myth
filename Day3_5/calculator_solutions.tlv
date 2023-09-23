@@ -24,7 +24,7 @@
          //Assigning variables
          
          $val2[31:0] = $rand2[3:0];
-         $val1[31:0] = >>2$out[3:0];
+         $val1[31:0] = >>2$out[31:0];
          
          //Define operations
          $sum[31:0] = $val1[31:0] + $val2[31:0];

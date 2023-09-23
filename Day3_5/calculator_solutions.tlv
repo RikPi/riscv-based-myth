@@ -7,6 +7,9 @@
    //
    // Second calculator exercise (Using output of previous cycle)
    // See: https://makerchip.com/sandbox/0yPfNhMDo/0r0hqv
+   //
+   // Third calculator exercise (MUX in @2 with $valid signal)
+   // See: https://makerchip.com/sandbox/0yPfNhMDo/0pghkk
    // =================================================
 \SV
    // Macro providing required top-level module definition, random
@@ -17,28 +20,33 @@
       @0
          $reset = *reset;
 
-         //Assign the 32-bit input to random 4-bit value
+      @1
+         //Assigning variables
          
          $val2[31:0] = $rand2[3:0];
-   
-         //Define operations, first value is the previous cycle's output
-         $sum[31:0] = >>1$out[31:0] + $val2[31:0];
-         $diff[31:0] = >>1$out[31:0] - $val2[31:0];
-         $prod[31:0] = >>1$out[31:0] * $val2[31:0];
-         $quot[31:0] = >>1$out[31:0] / $val2[31:0];
-
-         //Define mux selector
-         $op[2:0] = $rand[2:0];
+         $val1[31:0] = >>2$out[3:0];
          
-         //Define muxed output
+         //Define operations
+         $sum[31:0] = $val1[31:0] + $val2[31:0];
+         $diff[31:0] = $val1[31:0] - $val2[31:0];
+         $prod[31:0] = $val1[31:0] * $val2[31:0];
+         $quot[31:0] = $val1[31:0] / $val2[31:0];
+         
+         //Counter for validity condition
+         $valid[0:0] = $reset ? 0 : (>>1$valid[0:0] +1);
+         
+      @2
+         
+         //Define muxed output with reset condition
          $out[31:0] = 
+            $reset || ! $valid[0:0] ? 32'b0 :
             $op[0] ? $sum[31:0] :
             $op[1] ? $diff[31:0] :
             $op[2] ? $prod[31:0] :
-            $reset ? 32'b0 :
             $quot[31:0];
-          //In this calculator, the default operation is the division
-   
+         //In this calculator, the default operation is the division
+         
+         
    
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = *cyc_cnt > 40;

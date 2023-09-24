@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, RISC-V PC with 32'd4 increment and >>1$reset
+   // For this project, "Fetch part 2"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -54,6 +54,15 @@
          $pc[31:0] =
             >>1$reset ? 32'd0 :
             >>1$pc[31:0] + 32'd4;
+         
+         //Enable memory reading and receiving the PC address
+         $imem_rd_en = !$reset;
+         $imem_rd_addr[3-1:0] = $pc[3+1:2];
+         
+      @1
+         
+         $instr[31:0] = $imem_rd_data[31:0];
+
 
 
 

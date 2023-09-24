@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Register File Write"
+   // For this project, "Branches 1"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -149,6 +149,16 @@
          $rf_rd_index2[4:0] = $rs2;
          //Output to ALU
          $src2_value[31:0] = $rf_rd_data2;
+         
+         //Branching implementation
+         $taken_br = 
+            $is_beq ? ($src1_value == $src2_value) :
+            $is_bne ? ($src1_value != $src2_value) :
+            $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])) :
+            $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])) :
+            $is_bltu ? ($src1_value < $src2_value) :
+            $is_bgeu ? ($src1_value >= $src2_value) :
+            1'b0;
          
          //ALU
          $result[31:0] = 

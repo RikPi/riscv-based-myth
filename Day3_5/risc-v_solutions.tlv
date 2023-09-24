@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Branches 1"
+   // For this project, "Branches 2"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -53,6 +53,7 @@
          //resets to 0 the cycle after the reset signal is issued
          $pc[31:0] =
             >>1$reset ? 32'd0 :
+            >>1$taken_br ? >>1$br_tgt_pc :
             >>1$pc[31:0] + 32'd4;
          
          //Enable memory reading and receiving the PC address
@@ -159,6 +160,9 @@
             $is_bltu ? ($src1_value < $src2_value) :
             $is_bgeu ? ($src1_value >= $src2_value) :
             1'b0;
+         
+         //Compute PC targeted by branching
+         $br_tgt_pc[31:0] = $pc + $imm;
          
          //ALU
          $result[31:0] = 

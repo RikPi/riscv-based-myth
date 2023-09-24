@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Instruction Decode"
+   // For this project, "Register File Read"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -134,6 +134,17 @@
          $is_bgeu = $dec_bits ==? 11'bx_111_1100011; //BGEU
          $is_addi = $dec_bits ==? 11'bx_000_0010011; //ADDI
          $is_add = $dec_bits ==? 11'b0_000_0110011; //ADD
+         
+         //Read data from register file
+         //Enable rd 1 with rs 1
+         $rf_rd_en1 = $rs1_valid;
+         //Give index to rd 1
+         $rf_rd_index1[4:0] = $rs1;
+         
+         //Enable rd 2 with rs 2
+         $rf_rd_en2 = $rs2_valid;
+         //Give index to rd 2
+         $rf_rd_index2[4:0] = $rs2;
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
@@ -152,7 +163,7 @@
    //  o CPU visualization
    |cpu
       m4+imem(@1)    // Args: (read stage)
-      //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
       //m4+dmem(@4)    // Args: (read/write stage)
       //m4+myth_fpga(@0)  // Uncomment to run on fpga
 

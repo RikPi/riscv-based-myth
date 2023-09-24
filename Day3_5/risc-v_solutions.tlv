@@ -99,7 +99,7 @@
          $opcode[6:0] = $instr[6:0];
          
          //Decode rd based on instr type
-         $rd_valid = !$is_s_instr && !$is_b_instr;
+         $rd_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr;
          ?$rd_valid
             $rd[4:0] = $instr[11:7];
          
@@ -109,16 +109,18 @@
             $rs2[4:0] = $instr[24:20];
          
          //Decode rs1 based on instr type
-         $rs1_valid = !$is_u_instr && !$is_j_instr;
+         $rs1_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
          ?$rs1_valid
             $rs1[4:0] = $instr[19:15];
             
-            //Decode funct3 based on instr type
-            
-            $funct3[2:0] = $instr[14:12]; //It has the same conditions as rs1
+         //Decode funct3 based on instr type
+         $func3_valid =  $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+         ?$func3_valid
+            $funct3[2:0] = $instr[14:12];
          
          //Decode funct7 based on instr type
-         ?$is_r_instr
+         $func7_valid = $is_r_instr;
+         ?$func7_valid
             $funct7[6:0] = $instr[31:25];
 
 

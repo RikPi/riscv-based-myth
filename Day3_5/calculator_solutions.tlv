@@ -13,6 +13,9 @@
    //
    // Fourth calculator exercise (Two-cycle with validity)
    // See: https://makerchip.com/sandbox/0yPfNhMDo/0KOhGM
+   //
+   // Fifth calculator exercise (Two-cyle with validity and single-value memory)
+   // See: https://makerchip.com/sandbox/0yPfNhMDo/0g5h7Q
    // =================================================
 \SV
    // Macro providing required top-level module definition, random
@@ -25,7 +28,7 @@
       
       @1
          
-         //Counter for validity condition
+         //Counter for validity condition (every other cycle)
          $valid[0:0] = $reset ? 0 : (>>1$valid[0:0] +1);
          $valid_or_reset = $valid || $reset;
       
@@ -35,6 +38,7 @@
 
             $val2[31:0] = $rand2[3:0];
             $val1[31:0] = >>2$out[31:0];
+            $op[2:0] = $randop[2:0];
 
             //Define operations
             $sum[31:0] = $val1[31:0] + $val2[31:0];
@@ -44,15 +48,25 @@
 
 
          @2
-
+            
             //Define muxed output with reset condition
             $out[31:0] = 
-               $op[0] ? $sum[31:0] :
-               $op[1] ? $diff[31:0] :
-               $op[2] ? $prod[31:0] :
-               $quot[31:0];
-            //In this calculator, the default operation is the division
-
+               $op == 0 ? $quot[31:0] :
+               $op == 1 ? $diff[31:0] :
+               $op == 2 ? $prod[31:0] :
+               $op == 3 ? $mem[31:0] :
+               $sum[31:0];
+            //In this calculator, the default operation is the sum
+            //This was changed from $quot because the frequent zeros it gave
+            //making it difficult to debug and verify
+            
+            //Define memory mux
+            $mem[31:0] =
+               $reset ? 32'b0 :
+               $op == 4 ? >>2$out[31:0] :
+               >>2$mem[31:0];
+            //By default, the memory remembers the value until the calculator
+            //puts a new one in memory
          
          
    

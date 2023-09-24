@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Instruction Type Decoding"
+   // For this project, "Instruction Immediate Decoding"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -63,7 +63,7 @@
          //Read instruction from memory
          $instr[31:0] = $imem_rd_data[31:0];
          
-         //Check instruction type I, R, S, B, J, U
+         //Check instruction type I, R, S, B, J, U 
          $is_i_instr = 
             $instr[6:2] ==? 5'b0000x ||
             $instr[6:2] ==? 5'b001x0 ||
@@ -85,6 +85,15 @@
          
          $is_u_instr = 
             $instr[6:2] ==? 5'b0x101;
+         
+         //Immediate decoding using types
+         $imm[31:0] = 
+            $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+            $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:7] } :
+            $is_b_instr ? { {20{$instr[31]}}, $instr[7], $instr[30:25], $instr[11:8], 1'b0 } :
+            $is_u_instr ? { $instr[31:12], 12'b0 } :
+            $is_j_instr ? { {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0 } :
+            32'b0; //R instruction
 
 
 

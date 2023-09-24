@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Instruction Decoding"
+   // For this project, "RISC-V Instruction Field Decode"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -98,20 +98,28 @@
          //Decode opcode
          $opcode[6:0] = $instr[6:0];
          
-         //Decode rd
-         $rd[4:0] = $instr[11:7];
+         //Decode rd based on instr type
+         $rd_valid = !$is_s_instr && !$is_b_instr;
+         ?$rd_valid
+            $rd[4:0] = $instr[11:7];
          
-         //Decode rs2
-         $rs2[4:0] = $instr[24:20];
+         //Decode rs2 based on instr type
+         $rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr;
+         ?$rs2_valid
+            $rs2[4:0] = $instr[24:20];
          
-         //Decode rs1
-         $rs1[4:0] = $instr[19:15];
+         //Decode rs1 based on instr type
+         $rs1_valid = !$is_u_instr && !$is_j_instr;
+         ?$rs1_valid
+            $rs1[4:0] = $instr[19:15];
+            
+            //Decode funct3 based on instr type
+            
+            $funct3[2:0] = $instr[14:12]; //It has the same conditions as rs1
          
-         //Decode funct3
-         $funct3[2:0] = $instr[14:12];
-         
-         //Decode funct7
-         $funct7[6:0] = $instr[31:25];
+         //Decode funct7 based on instr type
+         ?$is_r_instr
+            $funct7[6:0] = $instr[31:25];
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,

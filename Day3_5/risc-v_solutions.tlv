@@ -1,8 +1,8 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Branches 2"
-   // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
+   // For this project, "Testbench"
+   // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
 
@@ -177,7 +177,8 @@
          $rf_wr_index[4:0] = $rd;
          //Write result of ALU
          $rf_wr_data[31:0] = $result;
-
+         
+         *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
       //       be sure to avoid having unassigned signals (which you might be using for random inputs)

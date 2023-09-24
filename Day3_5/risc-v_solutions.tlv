@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Instruction Immediate Decoding"
+   // For this project, "Instruction Decoding"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -94,7 +94,24 @@
             $is_u_instr ? { $instr[31:12], 12'b0 } :
             $is_j_instr ? { {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0 } :
             32'b0; //R instruction
-
+         
+         //Decode opcode
+         $opcode[6:0] = $instr[6:0];
+         
+         //Decode rd
+         $rd[4:0] = $instr[11:7];
+         
+         //Decode rs2
+         $rs2[4:0] = $instr[24:20];
+         
+         //Decode rs1
+         $rs1[4:0] = $instr[19:15];
+         
+         //Decode funct3
+         $funct3[2:0] = $instr[14:12];
+         
+         //Decode funct7
+         $funct7[6:0] = $instr[31:25];
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,

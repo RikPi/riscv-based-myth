@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "RISC-V Instruction Field Decode"
+   // For this project, "Instruction Decode"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -114,14 +114,26 @@
             $rs1[4:0] = $instr[19:15];
             
          //Decode funct3 based on instr type
-         $func3_valid =  $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
-         ?$func3_valid
+         $funct3_valid =  $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+         ?$funct3_valid
             $funct3[2:0] = $instr[14:12];
          
          //Decode funct7 based on instr type
-         $func7_valid = $is_r_instr;
-         ?$func7_valid
+         $funct7_valid = $is_r_instr;
+         ?$funct7_valid
             $funct7[6:0] = $instr[31:25];
+         
+         //Decode assembly instructions
+         $dec_bits[10:0] = {$funct7[5], $funct3, $opcode}; //Bits for decoding
+         
+         $is_beq = $dec_bits ==? 11'bx_000_1100011; //BEQ
+         $is_bne = $dec_bits ==? 11'bx_001_1100011; //BNE
+         $is_blt = $dec_bits ==? 11'bx_100_1100011; //BLT
+         $is_bge = $dec_bits ==? 11'bx_101_1100011; //BGE
+         $is_bltu = $dec_bits ==? 11'bx_110_1100011; //BLTU
+         $is_bgeu = $dec_bits ==? 11'bx_111_1100011; //BGEU
+         $is_addi = $dec_bits ==? 11'bx_000_0010011; //ADDI
+         $is_add = $dec_bits ==? 11'b0_000_0110011; //ADD
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,

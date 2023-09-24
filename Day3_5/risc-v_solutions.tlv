@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Fetch part 2"
+   // For this project, "Instruction Type Decoding"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -60,9 +60,31 @@
          $imem_rd_addr[3-1:0] = $pc[3+1:2];
          
       @1
-         
+         //Read instruction from memory
          $instr[31:0] = $imem_rd_data[31:0];
-
+         
+         //Check instruction type I, R, S, B, J, U
+         $is_i_instr = 
+            $instr[6:2] ==? 5'b0000x ||
+            $instr[6:2] ==? 5'b001x0 ||
+            $instr[6:2] ==? 5'b11001;
+         
+         $is_r_instr = 
+            $instr[6:2] ==? 5'b01011 ||
+            $instr[6:2] ==? 5'b011x0 ||
+            $instr[6:2] ==? 5'b10100;
+         
+         $is_s_instr = 
+            $instr[6:2] ==? 5'b0100x;
+         
+         $is_b_instr = 
+            $instr[6:2] ==? 5'b11000;
+         
+         $is_j_instr = 
+            $instr[6:2] ==? 5'b11011;
+         
+         $is_u_instr = 
+            $instr[6:2] ==? 5'b0x101;
 
 
 

@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Register File Read"
+   // For this project, "Register File Read (Part 2)"
    // See: makerchip.com/sandbox/0zpfRhXRB/03lhQl
    // =================================================
 
@@ -140,11 +140,15 @@
          $rf_rd_en1 = $rs1_valid;
          //Give index to rd 1
          $rf_rd_index1[4:0] = $rs1;
+         //Output to ALU
+         $src1_value[31:0] = $rf_rd_data1;
          
          //Enable rd 2 with rs 2
          $rf_rd_en2 = $rs2_valid;
          //Give index to rd 2
          $rf_rd_index2[4:0] = $rs2;
+         //Output to ALU
+         $src2_value[31:0] = $rf_rd_data2;
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,

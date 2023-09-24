@@ -158,7 +158,7 @@
          
          //Write to register file
          //Enable if $rd_valid and $rd != 0
-         $rf_wr_en = $rd_valid && $rd != 0;
+         $rf_wr_en = $rd_valid && $rd != 5'b0;
          //Give index
          $rf_wr_index[4:0] = $rd;
          //Write result of ALU

@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "3-cycle RISC-V (part 2)"
+   // For this project, "Register File Bypass"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -151,14 +151,18 @@
          //Give index to rd 1
          $rf_rd_index1[4:0] = $rs1;
          //Output to ALU
-         $src1_value[31:0] = $rf_rd_data1;
+         $src1_value[31:0] = 
+            (>>1$rf_wr_en && (>>1$rf_wr_index == $rf_rd_index1)) ? >>1$result :
+            $rf_rd_data1;
          
          //Enable rd 2 with rs 2
          $rf_rd_en2 = $rs2_valid;
          //Give index to rd 2
          $rf_rd_index2[4:0] = $rs2;
          //Output to ALU
-         $src2_value[31:0] = $rf_rd_data2;
+         $src2_value[31:0] = 
+            (>>1$rf_wr_en && (>>1$rf_wr_index == $rf_rd_index2)) ? >>1$result :
+            $rf_rd_data2;
          
          //Compute PC targeted by branching
          $br_tgt_pc[31:0] = $pc + $imm;

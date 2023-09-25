@@ -142,7 +142,11 @@
          $is_auipc  = $dec_bits ==? 11'bx_xxx_0010111; //AUIPC
          $is_jal = $dec_bits ==? 11'bx_xxx_1101111; //JAL
          $is_jalb = $dec_bits ==? 11'bx_000_1100111; //JALB
-         $is_load = $dec_bits ==? 11'bx_xxx_0000011; //LB, LH, LW, LBU, LHU
+         //$is_lb = $dec_bits ==? 11'bx_000_0000011; //LB
+         //$is_lh = $dec_bits ==? 11'bx_001_0000011; //LH
+         //$is_lw = $dec_bits ==? 11'bx_010_0000011; //LW
+         //$is_lbu = $dec_bits ==? 11'bx_100_0000011; //LBU
+         //$is_lhu = $dec_bits ==? 11'bx_101_0000011; //LHU
          $is_sb = $dec_bits ==? 11'bx_000_0100011; //SB
          $is_sh = $dec_bits ==? 11'bx_010_0100011; //SW
          $is_slti = $dec_bits ==? 11'bx_010_0010011; //SLTI
@@ -162,6 +166,7 @@
          $is_sra = $dec_bits ==? 11'b1_101_0110011; //SRA
          $is_or = $dec_bits ==? 11'b0_110_0110011; //OR
          $is_and = $dec_bits ==? 11'b0_111_0110011; //AND
+         $is_load = $opcode ==? 7'b0000011; //LB, LH, LW, LBU, LHU
          
       @2
          //Read data from register file

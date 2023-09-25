@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Complete Instruction Decode"
+   // For this project, "Complete ALU"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -208,10 +208,38 @@
          //Validity of branching
          $valid_taken_br = $valid && $taken_br;
          
+         //Calculating intermediates for SLT and SLTI
+         //Using verification to avoid wasting resources each cycle
+         ?$is_slt
+            $sltu_rslt[31:0] = $src1_value < $src2_value;
+         ?$is_slti
+            $sltiu_rslt[31:0] = $src1_value < $imm;
+         
          //ALU
          $result[31:0] = 
             $is_addi ? $src1_value + $imm :
             $is_add ? $src1_value + $src2_value :
+            $is_andi ? $src1_value & $imm :
+            $is_ori ? $src1_value | $imm :
+            $is_xori ? $src1_value ^ $imm :
+            $is_slli ? $src1_value << $imm[5:0] :
+            $is_srli ? $src1_value >> $imm[5:0] :
+            $is_and ? $src1_value & $src2_value :
+            $is_or ? $src1_value | $src2_value :
+            $is_xor ? $src1_value ^ $src2_value :
+            $is_sub ? $src1_value - $src2_value :
+            $is_sll ? $src1_value << $src2_value[4:0] :
+            $is_srl ? $src1_value >> $src2_value[4:0] :
+            $is_sltu ? $src1_value < $src2_value :
+            $is_sltiu ? $src1_value < $imm :
+            $is_lui ? {$imm[31:12], 12'b0} :
+            $is_auipc ? $pc + $imm :
+            $is_jal ? $pc + 4 :
+            $is_jalr ? $pc + 4 :
+            $is_srai ? { {32{$src1_value[31]}}, $src1_value} >> $imm[4:0] :
+            $is_slt ? ($src1_value[31] == $src2_value[31]) ? $sltu_rslt : {31'b0,$src1_value[31]} :
+            $is_slti ? ($src1_value[31] == $imm[31]) ? $sltiu_rslt : {31'b0,$src1_value[31]} :
+            $is_sra ? { {32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0] :
             32'bx;
          
          //Write to register file

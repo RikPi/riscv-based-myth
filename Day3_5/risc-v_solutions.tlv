@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Complete ALU"
+   // For this project, "Redirect loads"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -54,6 +54,7 @@
          $pc[31:0] =
             >>1$reset ? 32'd0 :
             >>3$valid_taken_br ? >>3$br_tgt_pc :
+            >>3$valid_load ? >>3$inc_pc :
             >>1$inc_pc;
          
          //Enable memory reading and receiving the PC address
@@ -203,7 +204,7 @@
             1'b0;
          
          //Validity based on branching
-         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load);
          
          //Validity of branching
          $valid_taken_br = $valid && $taken_br;
@@ -241,6 +242,11 @@
             $is_slti ? ($src1_value[31] == $imm[31]) ? $sltiu_rslt : {31'b0,$src1_value[31]} :
             $is_sra ? { {32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0] :
             32'bx;
+         
+         //LOAD instruction handling
+         $valid_load = $valid && $is_load;
+         
+         
          
          //Write to register file
          //Enable if $rd_valid and $rd != 0

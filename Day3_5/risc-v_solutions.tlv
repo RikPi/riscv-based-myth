@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "3-cycle RISC-V"
+   // For this project, "3-cycle RISC-V (part 2)"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -64,11 +64,13 @@
          $start = (!$reset && >>1$reset);
          //Valid pulse every 3 cycles
          $valid = ($start ==? 1 || >>3$valid ==? 1 && !$reset);
-           
          
       @1
          //Read instruction from memory
          $instr[31:0] = $imem_rd_data[31:0];
+         
+         //Increment PC
+         $inc_pc[31:0] = $pc + 32'd4;
          
          //Check instruction type I, R, S, B, J, U 
          $is_i_instr = 
@@ -142,6 +144,7 @@
          $is_addi = $dec_bits ==? 11'bx_000_0010011; //ADDI
          $is_add = $dec_bits ==? 11'b0_000_0110011; //ADD
          
+      @2
          //Read data from register file
          //Enable rd 1 with rs 1
          $rf_rd_en1 = $rs1_valid;
@@ -157,6 +160,10 @@
          //Output to ALU
          $src2_value[31:0] = $rf_rd_data2;
          
+         //Compute PC targeted by branching
+         $br_tgt_pc[31:0] = $pc + $imm;
+         
+      @3
          //Branching implementation
          $taken_br = 
             $is_beq ? ($src1_value == $src2_value) :
@@ -167,8 +174,8 @@
             $is_bgeu ? ($src1_value >= $src2_value) :
             1'b0;
          
-         //Compute PC targeted by branching
-         $br_tgt_pc[31:0] = $pc + $imm;
+         //Validity of branching
+         $valid_taken_br = $valid && $taken_br;
          
          //ALU
          $result[31:0] = 
@@ -185,14 +192,6 @@
          $rf_wr_data[31:0] = $result;
          
          *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
-         
-         //Increment PC
-         $inc_pc[31:0] = $pc + 32'd4;
-         
-      @3
-         
-         //Validity of branching
-         $valid_taken_br = $valid && $taken_br;
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
       //       be sure to avoid having unassigned signals (which you might be using for random inputs)

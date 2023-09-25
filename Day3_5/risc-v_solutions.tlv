@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Register File Bypass"
+   // For this project, "Branches"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -54,16 +54,11 @@
          $pc[31:0] =
             >>1$reset ? 32'd0 :
             >>3$valid_taken_br ? >>3$br_tgt_pc :
-            >>3$inc_pc;
+            >>1$inc_pc;
          
          //Enable memory reading and receiving the PC address
          $imem_rd_en = !$reset;
          $imem_rd_addr[3-1:0] = $pc[3+1:2];
-         
-         //Start pulse right after reset was 1 in previous cycle
-         $start = (!$reset && >>1$reset);
-         //Valid pulse every 3 cycles
-         $valid = ($start ==? 1 || >>3$valid ==? 1 && !$reset);
          
       @1
          //Read instruction from memory
@@ -177,6 +172,9 @@
             $is_bltu ? ($src1_value < $src2_value) :
             $is_bgeu ? ($src1_value >= $src2_value) :
             1'b0;
+         
+         //Validity based on branching
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
          
          //Validity of branching
          $valid_taken_br = $valid && $taken_br;

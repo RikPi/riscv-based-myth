@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Testbench"
+   // For this project, "3-cycle $valid"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -59,6 +59,12 @@
          //Enable memory reading and receiving the PC address
          $imem_rd_en = !$reset;
          $imem_rd_addr[3-1:0] = $pc[3+1:2];
+         
+         //Start pulse right after reset was 1 in previous cycle
+         $start = (!$reset && >>1$reset);
+         //Valid pulse every 3 cycles
+         $valid = ($start ==? 1 || >>3$valid ==? 1 && !$reset);
+           
          
       @1
          //Read instruction from memory

@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "3-cycle $valid"
+   // For this project, "3-cycle RISC-V"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -53,8 +53,8 @@
          //resets to 0 the cycle after the reset signal is issued
          $pc[31:0] =
             >>1$reset ? 32'd0 :
-            >>1$taken_br ? >>1$br_tgt_pc :
-            >>1$pc[31:0] + 32'd4;
+            >>3$valid_taken_br ? >>3$br_tgt_pc :
+            >>3$inc_pc;
          
          //Enable memory reading and receiving the PC address
          $imem_rd_en = !$reset;
@@ -178,13 +178,21 @@
          
          //Write to register file
          //Enable if $rd_valid and $rd != 0
-         $rf_wr_en = $rd_valid && $rd != 5'b0;
+         $rf_wr_en = $rd_valid && $valid && $rd != 5'b0;
          //Give index
          $rf_wr_index[4:0] = $rd;
          //Write result of ALU
          $rf_wr_data[31:0] = $result;
          
          *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+         
+         //Increment PC
+         $inc_pc[31:0] = $pc + 32'd4;
+         
+      @3
+         
+         //Validity of branching
+         $valid_taken_br = $valid && $taken_br;
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
       //       be sure to avoid having unassigned signals (which you might be using for random inputs)

@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Redirect loads"
+   // For this project, "Load Data 1"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -245,16 +245,22 @@
          
          //LOAD instruction handling
          $valid_load = $valid && $is_load;
-         
+         $load_addi = 
+          ($is_load || $is_s_instr) ? $src1_value + $imm :
+          32'b0;
          
          
          //Write to register file
          //Enable if $rd_valid and $rd != 0
-         $rf_wr_en = $rd_valid && $valid && $rd != 5'b0;
+         $rf_wr_en = ($rd_valid && $valid && $rd != 5'b0) ||>>2$valid_load;
          //Give index
-         $rf_wr_index[4:0] = $rd;
+         $rf_wr_index[4:0] = 
+            >>2$valid_load ? >>2$rd :
+            $rd;
          //Write result of ALU
-         $rf_wr_data[31:0] = $result;
+         $rf_wr_data[31:0] = 
+            >>2$valid_load ? >>2$ld_data :
+            $result;
          
          *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
 

@@ -108,4 +108,16 @@ In this way, if $op == 3, the $mem value will get recalled, put in $out and used
 
 [FULL CODE FOR CALCULATOR HERE](https://github.com/RISCV-MYTH-WORKSHOP/riscv-myth-workshop-sep23-RikPi/blob/master/Day3_5/calculator_solutions.tlv)
 
-##
+## RISC-V CPU
+This section illustrates step by step the design of the RISC-V CPU, lab by lab. The text will follow the commit history to better showcase the development process. Each lab has its own subsection.
+
+### Next PC
+As a first building block for the CPU, we need to think about how to increment the pointer each cycle to get to the next instruction. To achieve this, since the instructions are 32-bit, we need to add 4 to the current pointer. This is done by using the following code:
+```
+//PC implementation such as it increments 32'd4 each cycle and
+//resets to 0 the cycle after the reset signal is issued
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>1$pc[31:0] + 32'd4;
+```
+The >>1 operator is used to increment the previous cycle's value of $pc. When reset pulls high, $pc gets reset to 0.

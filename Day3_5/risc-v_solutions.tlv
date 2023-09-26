@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Load Data 2"
+   // For this project, "Load/Store in Program"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -39,7 +39,11 @@
    m4_asm(ADD, r14, r13, r14)           // Incremental addition
    m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
    m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
+   
    m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
+   //DMEM istructions to try LW and SW
+   m4_asm(SW, r0, r10, 100)
+   m4_asm(LW, r15, r0, 100)
    
    // Optional:
    // m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
@@ -142,14 +146,15 @@
          $is_lui = $dec_bits ==? 11'bx_xxx_0110111; //LUI
          $is_auipc  = $dec_bits ==? 11'bx_xxx_0010111; //AUIPC
          $is_jal = $dec_bits ==? 11'bx_xxx_1101111; //JAL
-         $is_jalb = $dec_bits ==? 11'bx_000_1100111; //JALB
-         //$is_lb = $dec_bits ==? 11'bx_000_0000011; //LB
-         //$is_lh = $dec_bits ==? 11'bx_001_0000011; //LH
-         //$is_lw = $dec_bits ==? 11'bx_010_0000011; //LW
-         //$is_lbu = $dec_bits ==? 11'bx_100_0000011; //LBU
-         //$is_lhu = $dec_bits ==? 11'bx_101_0000011; //LHU
+         $is_jalr = $dec_bits ==? 11'bx_000_1100111; //JALR
+         $is_lb = $dec_bits ==? 11'bx_000_0000011; //LB
+         $is_lh = $dec_bits ==? 11'bx_001_0000011; //LH
+         $is_lw = $dec_bits ==? 11'bx_010_0000011; //LW
+         $is_lbu = $dec_bits ==? 11'bx_100_0000011; //LBU
+         $is_lhu = $dec_bits ==? 11'bx_101_0000011; //LHU
          $is_sb = $dec_bits ==? 11'bx_000_0100011; //SB
-         $is_sh = $dec_bits ==? 11'bx_010_0100011; //SW
+         $is_sh = $dec_bits ==? 11'bx_001_0100011; //SH
+         $is_sw = $dec_bits ==? 11'bx_010_0100011; //SW
          $is_slti = $dec_bits ==? 11'bx_010_0010011; //SLTI
          $is_sltiu = $dec_bits ==? 11'bx_011_0010011; //SLTIU
          $is_xori = $dec_bits ==? 11'bx_100_0010011; //XORI
@@ -157,7 +162,7 @@
          $is_andi = $dec_bits ==? 11'bx_111_0010011; //ANDI
          $is_slli = $dec_bits ==? 11'b0_001_0010011; //SLLI
          $is_srli = $dec_bits ==? 11'b0_101_0010011; //SRLI
-         $is_sral = $dec_bits ==? 11'b1_101_0010011; //SRAL
+         $is_srai = $dec_bits ==? 11'b1_101_0010011; //SRAI
          $is_sub = $dec_bits ==? 11'b1_000_0110011; //SUB
          $is_sll = $dec_bits ==? 11'b0_001_0110011; //SLL
          $is_slt = $dec_bits ==? 11'b0_010_0110011; //SLT
@@ -167,9 +172,9 @@
          $is_sra = $dec_bits ==? 11'b1_101_0110011; //SRA
          $is_or = $dec_bits ==? 11'b0_110_0110011; //OR
          $is_and = $dec_bits ==? 11'b0_111_0110011; //AND
-         $is_load = $opcode ==? 7'b0000011; //LB, LH, LW, LBU, LHU
+         $is_load = $opcode == 7'b0000011; //LB, LH, LW, LBU, LHU
          
-         *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+         *passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
          
       @2
          //Read data from register file
@@ -248,8 +253,6 @@
          //LOAD instruction handling
          $valid_load = $valid && $is_load;
          
-         //Validity of STORE instruction
-         $valid_store = $valid && $is_s_instr;
          
          
          //Write to register file
@@ -267,7 +270,7 @@
       @4
          //Implement DMEM
          $dmem_rd_en = $is_load;
-         $dmem_wr_en = $valid_store;
+         $dmem_wr_en = $valid && $is_s_instr;
          $dmem_addr[3:0] = $result[5:2];
          $dmem_wr_data[31:0] = $src2_value;
          

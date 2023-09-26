@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Load/Store in Program"
+   // For this project, "Jumps"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -39,14 +39,13 @@
    m4_asm(ADD, r14, r13, r14)           // Incremental addition
    m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
    m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
-   
    m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
    //DMEM istructions to try LW and SW
    m4_asm(SW, r0, r10, 100)
    m4_asm(LW, r15, r0, 100)
    
    // Optional:
-   // m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
+   m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
    m4_define_hier(['M4_IMEM'], M4_NUM_INSTRS)
 
    |cpu
@@ -59,6 +58,8 @@
             >>1$reset ? 32'd0 :
             >>3$valid_taken_br ? >>3$br_tgt_pc :
             >>3$valid_load ? >>3$inc_pc :
+            >>3$valid_jump && >>3$is_jal ? >>3$br_tgt_pc :
+            >>3$valid_jump && >>3$is_jalr ? >>3$jalr_tgt_pc :
             >>1$inc_pc;
          
          //Enable memory reading and receiving the PC address
@@ -173,8 +174,8 @@
          $is_or = $dec_bits ==? 11'b0_110_0110011; //OR
          $is_and = $dec_bits ==? 11'b0_111_0110011; //AND
          $is_load = $opcode == 7'b0000011; //LB, LH, LW, LBU, LHU
+         $is_jump = $is_jal || $is_jalr; //JAL, JALR
          
-         *passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
          
       @2
          //Read data from register file
@@ -210,11 +211,17 @@
             $is_bgeu ? ($src1_value >= $src2_value) :
             1'b0;
          
-         //Validity based on branching
-         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load);
+         //Validity based on branching and jumps
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load || >>1$valid_jump || >>2$valid_jump);
          
          //Validity of branching
          $valid_taken_br = $valid && $taken_br;
+         
+         //Validity of jump
+         $valid_jump = $valid && $is_jump;
+         
+         //Calculate jump destination
+         $jalr_tgt_pc = $src1_value + $imm;
          
          //Calculating intermediates for SLT and SLTI
          //Using verification to avoid wasting resources each cycle
@@ -275,7 +282,7 @@
          $dmem_wr_data[31:0] = $src2_value;
          
       @5
-         $ld_data = $dmem_rd_data;
+         $ld_data[31:0] = $dmem_rd_data;
 
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
@@ -284,7 +291,7 @@
 
    
    // Assert these to end simulation (before Makerchip cycle limit).
-   *passed = *cyc_cnt > 40;
+   *passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
    *failed = 1'b0;
    
    // Macro instantiations for:

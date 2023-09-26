@@ -58,3 +58,28 @@ $quot[31:0] = >>1$out[31:0] / $val2[31:0];
 The only difference lies in this snippet. The >>1 operator is the one that delays the value by one cycle, or that calls the value of the previous cycle through a flip-flop.
 
 ### Third calculator exercise
+This lab's objective is introducing the concept of validity. The calculator will only return a value if the input is valid, otherwise it will return 0. In this case, validity is defined using:
+```
+$valid[0:0] = $reset ? 0 : (>>1$valid[0:0] +1);
+```
+This waveform is low when reset is high, otherwise it is increased by 1. Since $valid is defined as a binary value, this means it will be oscillating between 1 and 0 every cycle when reset is low.
+
+Since we are now using operating a two-cycle calculator, we need validity to avoid using a value from every other cycle. This is done by using the following code:
+```
+$out[31:0] = 
+    $reset || !$valid ? 32'b0 :
+    $op == 3'b000 ? $sum[31:0] :
+    $op == 3'b001 ? $diff[31:0] :
+    $op == 3'b010 ? $prod[31:0] :
+    $quot[31:0];
+```
+### Fourth calculator exercise
+To refine the $out mux, instead of zeroing every other cycle, we can use the $valid operator to avoid wasting resources and execute the code each 2 cycles. To achieve this, the following operator is defined and used to wrap the code:
+```
+$valid_or_reset = $valid || $reset;
+```
+To wrap it around the code, the correct syntax is the following:
+```
+?$valid_or_reset
+    //INDENTED CODE
+```

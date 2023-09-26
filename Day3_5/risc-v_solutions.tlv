@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Load Data 1"
+   // For this project, "Load Data 2"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -169,6 +169,8 @@
          $is_and = $dec_bits ==? 11'b0_111_0110011; //AND
          $is_load = $opcode ==? 7'b0000011; //LB, LH, LW, LBU, LHU
          
+         *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+         
       @2
          //Read data from register file
          //Enable rd 1 with rs 1
@@ -218,7 +220,7 @@
          
          //ALU
          $result[31:0] = 
-            $is_addi ? $src1_value + $imm :
+            ($is_addi || $is_load || $is_s_instr) ? $src1_value + $imm :
             $is_add ? $src1_value + $src2_value :
             $is_andi ? $src1_value & $imm :
             $is_ori ? $src1_value | $imm :
@@ -245,9 +247,9 @@
          
          //LOAD instruction handling
          $valid_load = $valid && $is_load;
-         $load_addi = 
-          ($is_load || $is_s_instr) ? $src1_value + $imm :
-          32'b0;
+         
+         //Validity of STORE instruction
+         $valid_store = $valid && $is_s_instr;
          
          
          //Write to register file
@@ -262,7 +264,16 @@
             >>2$valid_load ? >>2$ld_data :
             $result;
          
-         *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+      @4
+         //Implement DMEM
+         $dmem_rd_en = $is_load;
+         $dmem_wr_en = $valid_store;
+         $dmem_addr[3:0] = $result[5:2];
+         $dmem_wr_data[31:0] = $src2_value;
+         
+      @5
+         $ld_data = $dmem_rd_data;
+
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
       //       be sure to avoid having unassigned signals (which you might be using for random inputs)
@@ -281,7 +292,7 @@
    |cpu
       m4+imem(@1)    // Args: (read stage)
       m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
-      //m4+dmem(@4)    // Args: (read/write stage)
+      m4+dmem(@4)    // Args: (read/write stage)
       //m4+myth_fpga(@0)  // Uncomment to run on fpga
 
    m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.

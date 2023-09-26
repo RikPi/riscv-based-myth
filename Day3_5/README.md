@@ -37,9 +37,9 @@ $op[2:0] = $rand[2:0];
          
 //Define muxed output
 $out[31:0] = 
-    $op == 3'b000 ? $sum[31:0] :
-    $op == 3'b001 ? $diff[31:0] :
-    $op == 3'b010 ? $prod[31:0] :
+    $op == 0 ? $sum[31:0] :
+    $op == 1 ? $diff[31:0] :
+    $op == 2 ? $prod[31:0] :
     $quot[31:0];
 //In this calculator, the default operation is the division
 ```
@@ -68,9 +68,9 @@ Since we are now using operating a two-cycle calculator, we need validity to avo
 ```
 $out[31:0] = 
     $reset || !$valid ? 32'b0 :
-    $op == 3'b000 ? $sum[31:0] :
-    $op == 3'b001 ? $diff[31:0] :
-    $op == 3'b010 ? $prod[31:0] :
+    $op == 0 ? $sum[31:0] :
+    $op == 1 ? $diff[31:0] :
+    $op == 2 ? $prod[31:0] :
     $quot[31:0];
 ```
 ### Fourth calculator exercise
@@ -83,3 +83,29 @@ To wrap it around the code, the correct syntax is the following:
 ?$valid_or_reset
     //INDENTED CODE
 ```
+This way, each time the value is valid, the code will be executed, otherwise it will be skipped.
+
+### Fifth calculator exercise
+This last lab on the calculator lets us create a memory function for it. This is achieved by adding two new operations: store and recall. The store operation will store the value of the previous cycle in $mem, while the recall operation will return the value memorized to $out. Store is added using a mux for $mem:
+```
+$mem[31:0] =
+    $reset ? 32'b0 :
+    $op == 4 ? >>2$out[31:0] :
+    >>2$mem[31:0];
+```
+In this way, if $op == 4, the >>2$out value will get stored in the $mem variable. As it can be noted, the memory will by default keep storing the last value stored.
+
+The recall operation is added to the $out mux:
+```
+$out[31:0] = 
+    $op == 0 ? $quot[31:0] :
+    $op == 1 ? $diff[31:0] :
+    $op == 2 ? $prod[31:0] :
+    $op == 3 ? $mem[31:0] :
+    $sum[31:0];
+```
+In this way, if $op == 3, the $mem value will get recalled, put in $out and used as the first operand for the next cycle.
+
+[FULL CODE FOR CALCULATOR HERE](https://github.com/RISCV-MYTH-WORKSHOP/riscv-myth-workshop-sep23-RikPi/blob/master/Day3_5/calculator_solutions.tlv)
+
+##

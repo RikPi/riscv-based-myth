@@ -46,3 +46,15 @@ $out[31:0] =
 The operations are always performed and the result returned to $out is chosen by the $op variable. The default return is the division operation.
 
 ### Second calculator exercise
+In this exercise, the concept of cycle and using a value from previous cycle is introduced. The objective of this lab is to use the result from the previous cycle as the first operand of the current cycle, pretty much like the Ans key in a calculator.
+
+The code is very similar to the previous one, with the addition of a cycle-delayed variable:
+```
+$sum[31:0] = >>1$out[31:0] + $val2[31:0];
+$diff[31:0] = >>1$out[31:0] - $val2[31:0];
+$prod[31:0] = >>1$out[31:0] * $val2[31:0];
+$quot[31:0] = >>1$out[31:0] / $val2[31:0];
+```
+The only difference lies in this snippet. The >>1 operator is the one that delays the value by one cycle, or that calls the value of the previous cycle through a flip-flop.
+
+### Third calculator exercise

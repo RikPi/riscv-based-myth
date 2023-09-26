@@ -1,7 +1,7 @@
 \m4_TLV_version 1d: tl-x.org
 \SV
   // =================================================
-   // For this project, "Jumps"
+   // For this project, "CPU is finished :)"
    // See: https://makerchip.com/sandbox/0zpfRhXRB/0AnhyJ
    // =================================================
 
@@ -64,7 +64,7 @@
          
          //Enable memory reading and receiving the PC address
          $imem_rd_en = !$reset;
-         $imem_rd_addr[3-1:0] = $pc[3+1:2];
+         $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
          
       @1
          //Read instruction from memory

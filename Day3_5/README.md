@@ -112,6 +112,8 @@ In this way, if $op == 3, the $mem value will get recalled, put in $out and used
 This section illustrates step by step the design of the RISC-V CPU, lab by lab. The text will follow the commit history to better showcase the development process. Each lab has its own subsection.
 
 ### Next PC
+![Next PC diagram](/Day3_5/images/NextPCDiagram.png)
+
 As a first building block for the CPU, we need to think about how to increment the pointer each cycle to get to the next instruction. To achieve this, since the instructions are 32-bit, we need to add 4 to the current pointer. This is done by using the following code:
 ```
 //PC implementation such as it increments 32'd4 each cycle and
@@ -123,6 +125,8 @@ $pc[31:0] =
 The >>1 operator is used to increment the previous cycle's value of $pc. When reset pulls high, $pc gets reset to 0.
 
 ### Fetch
+![Fetch diagram](/Day3_5/images/FetchDiagram.png)
+
 During this lab, the $pc is used as the address of the instruction memory to fetch. To achieve this, the instruction memory read is enabled by setting $imem_rd_en to 1 when no reset signal is present and the addesss is set as follows:
 ```
 $imem_rd_en = !$reset;

@@ -373,3 +373,15 @@ $taken_br =
 In this way, we have a binary signal that is high when the branch is taken by computing the condition related to the specific branch instruction. For example, in the case of a BEQ, the program evaluates if the two values are equal and sets the $taken_br signal high if they are. Thus, we know if a branching instruction is called and if the branch is taken. The default value of $taken_br is 1'b0, meaning that if the instruction is not a branch, the branch is not taken.
 
 ### Branches (part 2)
+![Branches diagram](/Day3_5/images/Branches2Diagram.png)
+After having determined if the branch is taken, we need to compute the address of the next instruction. This is done by adding the immediate to $pc:
+```
+$br_tgt_pc[31:0] = $pc + $imm;
+```
+The $br_tgt_pc variable is the address of the next instruction if the branch is taken. To make this effective, we need to update the $pc variable with the new address if the branch is taken. This is done by using the following code:
+```
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>1$taken_br ? >>1$br_tgt_pc :
+    >>1$pc[31:0] + 32'd4;
+```

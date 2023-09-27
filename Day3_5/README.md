@@ -139,3 +139,37 @@ After this, the memory is read to get the $instr value, which is the instruction
 @1
     $instr[31:0] = $imem_rd_data[31:0];
 ```
+The instruction memory block is a macro that has 2 inputs and 1 output. The inputs are the address ($imem_rd_addr) and the read enable ($imem_rd_en), while the output is the data read from the memory ($imem_rd_data).
+
+### Decode
+All instruction have types and each type has a different format. The first step to decode the instruction is to determine its type. This can be done by looking at [The RISC-V Instruction Set Manual](https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf). The following image shows the different instruction types and the way of recognizing them:
+![Instruction types](/Day3_5/images/InstructionTypesTable.png)
+As we can observe, the instruction types can be recognized by comparing $instr[6:2] with the values on the table. Additionally, to avoid coding in every possibility, we can use the "don't care" bit "x" with the operator ==?, meaning that that particular bit can be 0 or 1, but it doesn't matter. The implementation is as follows:
+```
+ //Check instruction type I, R, S, B, J, U
+$is_i_instr = 
+    $instr[6:2] ==? 5'b0000x ||
+    $instr[6:2] ==? 5'b001x0 ||
+    $instr[6:2] ==? 5'b11001;
+
+$is_r_instr = 
+    $instr[6:2] ==? 5'b01011 ||
+    $instr[6:2] ==? 5'b011x0 ||
+    $instr[6:2] ==? 5'b10100;
+
+$is_s_instr = 
+    $instr[6:2] ==? 5'b0100x;
+
+$is_b_instr = 
+    $instr[6:2] ==? 5'b11000;
+
+$is_j_instr = 
+    $instr[6:2] ==? 5'b11011;
+
+$is_u_instr = 
+    $instr[6:2] ==? 5'b0x101;
+```
+For each type of instruction, we have a binary signal that is high when the instruction is of that type. It can be noticed that the usage of the don't care bit shortens the code, allowing us to halve the number of comparisons each time a x is present.
+
+We now have a working instruction type decoder, but we still need to decode the instruction itself.
+

@@ -579,4 +579,13 @@ $result[31:0] =
     $is_sra ? { {32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0] :
     32'bx;
 ```
+Since for SLTU and SLTIU there is the need of intermediate operations, we need to perform them outside of the ALU mux. Additionally, they have been put inside of validity checks to avoid computing them when not needed.
+```
+//Calculating intermediates for SLT and SLTI
+//Using verification to avoid wasting resources each cycle
+?$is_slt
+    $sltu_rslt[31:0] = $src1_value < $src2_value;
+?$is_slti
+    $sltiu_rslt[31:0] = $src1_value < $imm;
+```
 

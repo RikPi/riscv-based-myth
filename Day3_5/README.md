@@ -144,6 +144,7 @@ The instruction memory block is a macro that has 2 inputs and 1 output. The inpu
 ### Decode
 All instruction have types and each type has a different format. The first step to decode the instruction is to determine its type. This can be done by looking at [The RISC-V Instruction Set Manual](https://riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf). The following image shows the different instruction types and the way of recognizing them:
 ![Instruction types](/Day3_5/images/InstructionTypesTable.png)
+
 As we can observe, the instruction types can be recognized by comparing $instr[6:2] with the values on the table. Additionally, to avoid coding in every possibility, we can use the "don't care" bit "x" with the operator ==?, meaning that that particular bit can be 0 or 1, but it doesn't matter. The implementation is as follows:
 ```
  //Check instruction type I, R, S, B, J, U
@@ -176,6 +177,7 @@ We now have a working instruction type decoder, but we still need to decode the 
 ### Instruction Immediate Decoding
 The immediate is an important field of the instructions, carrying with it the value to be used in the operation. The immediate can be of different sizes, depending on the instruction type. The following table shows the different encodings:
 ![Immediate encodings](/Day3_5/images/InstructionImmediateTable.png)
+
 As it can be noticed, the R-instruction is missing: this is because the immediate is not present in this type of instruction and it is defaulted to 32'b0 a 32-bit zero. To decode the immediate, we use the ternary operator, effectively creating a mux, the code is as follows:
 ```
 //Immediate decoding using types
@@ -305,6 +307,7 @@ The register file is a memory block that stores the values of the registers. It 
 
 The outputs are the read data signals($rf_rd_data1 and $rf_rd_data2), that are used to read the values of the registers indexed by $rf_rd_index1 and $rd_rd_index2.
 ![Register file diagram](/Day3_5/images/RegisterFileDefinition.png)
+
 We are now interested in setting up the read operations by firstly enabling read and passing the indexes to the register file. This is done by using the following code:
 ```
 //Read data from register file
@@ -322,6 +325,7 @@ Since rs1 and rs2 are the addresses of the registers to be read, we can use thei
 
 ### Register File Read (part 2)
 ![Register file read diagram](/Day3_5/images/RegisterRead2Diagram.png)
+
 After we have passed the indices and enabled read, we can go and return the values read from the register file as shown in the above diagram. This is done by using the following code:
 ```
 //Output to ALU
@@ -332,6 +336,7 @@ In this way, we have saved the two output 32-bit values from the register memory
 
 ### ALU
 ![ALU diagram](/Day3_5/images/ALUDiagram.png)
+
 The ALU (Arithmetic Logic Unit) is the core of the CPU, it is the block that performs the actual operations. It is essentially a mux that chooses the output based on the assembly instruction. Since we have added decoding support for ADD and ADDI, these two will be the operations implemented in the ALU for now:
 ```
 //ALU
@@ -344,6 +349,7 @@ As written previousli, ADD sums together the values corresponding to addresses r
 
 ### Register File Write
 ![Register file write diagram](/Day3_5/images/RegisterWriteDiagram.png)
+
 After performing the calculations in the ALU, the result needs to be written back to the register file. This is done by using the following code:
 ```
 //Write to register file
@@ -358,6 +364,7 @@ As we can note, the write operation is enabled only if the instruction contains 
 
 ### Branches (part 1)
 ![Branches diagram](/Day3_5/images/Branches1Diagram.png)
+
 The branch instructions are used to change the flow of the program. They are used to jump to a different instruction based on a condition. The condition is determined by the values of the registers rs1 and rs2. The first step is to determine if a branch has been taken, based on the current instruction and the values of the values read from the memory. This is done by using the following code:
 ```
 //Branching implementation
@@ -374,6 +381,7 @@ In this way, we have a binary signal that is high when the branch is taken by co
 
 ### Branches (part 2)
 ![Branches diagram](/Day3_5/images/Branches2Diagram.png)
+
 After having determined if the branch is taken, we need to compute the address of the next instruction. This is done by adding the immediate to $pc:
 ```
 $br_tgt_pc[31:0] = $pc + $imm;
@@ -392,3 +400,25 @@ To conclude the first part of the RISC-V CPU development, a pass condition is ad
 *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
 ```
 This line checks if the value in register 10 is equal to the sum of the numbers from 1 to 9. If it is, the simulation is passed, otherwise it runs until the maximum cycles of the simulation allowed by Makerchip.
+
+## RISC-V CPU with Pipelining
+After having designed this first CPU, we will get on to pipeline the architecture. This means that we will be able to execute multiple instructions at the same time, increasing the performance of the CPU. The pipeline will be 5 stages long, as shown in the following image:
+![Pipeline diagram](/Day3_5/images/PipelineDiagram.png)
+
+This comes with a few challenges, such as hazards. Hazards are situations in which the pipeline cannot continue executing instructions because it is waiting for a previous instruction to finish. There are 3 types of hazards:
+* **Structural hazards**, that happen when two instructions need to use the same resource at the same time. They can be caused by the use of the same register or memory block.
+* **Data hazards**, that happen when an instruction needs to use a value that is not ready yet. This can happen when the instruction is using a value that is being calculated by a previous instruction. For example, in the image we can see that the register file read is in stage @2, whereas the write is in stage @4. This means that the value read from the register file will risk being read before being written.
+* **Control hazards**, that happen when the instruction to be executed next is not known yet. This can happen when branching or jumping is performed, since the next instruction to be executed is not the one after the current one and needs to be computed.
+
+By looking at the waterfall diagram of the instructions we can see the hazards more clearly:
+![Waterfall diagram](/Day3_5/images/WaterfallDiagramBefore.png)
+
+As we can see, the red arrow indicates a read after write hazard and the blue one indicates a control flow hazard. In short, the red arrow shows that we are trying to read a value from the memory, using the >>1 operator, but the value is actually written two cycles later. The blue arrow shows that we are trying to branch to a different instruction, but we don't know which one yet because we are trying to read the value of the branch two cycles before it is actually computed.
+
+To solve this in the easy way we can operate the CPU every third cycle, to avoid the hazards. This can be seen in the following picture:
+![Waterfall diagram](/Day3_5/images/WaterfallDiagramAfter.png)
+
+Now, there is no hazard in place and this can be further noted in the following waterfall logic diagram:
+![Waterfall logic diagram](/Day3_5/images/WaterfallLogicDiagram.png)
+
+We can observe that all the values are now consumed in the correct cycle, avoiding any hazard. This is a very simple way of avoiding hazards, but it is not very efficient since we are only using the CPU every third cycle.

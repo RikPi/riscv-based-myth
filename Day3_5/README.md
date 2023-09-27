@@ -319,3 +319,15 @@ $rf_rd_en2 = $rs2_valid;
 $rf_rd_index2[4:0] = $rs2;
 ```
 Since rs1 and rs2 are the addresses of the registers to be read, we can use their validity condition to enable the read operation. The indexes are then passed to the register file.
+
+### Register File Read (part 2)
+![Register file read diagram](/Day3_5/images/RegisterRead2Diagram.png)
+After we have passed the indices and enabled read, we can go and return the values read from the register file as shown in the above diagram. This is done by using the following code:
+```
+//Output to ALU
+$src1_value[31:0] = $rf_rd_data1;
+$src2_value[31:0] = $rf_rd_data2;
+```
+In this way, we have saved the two output 32-bit values from the register memory to variables we will input to the ALU.
+
+### ALU

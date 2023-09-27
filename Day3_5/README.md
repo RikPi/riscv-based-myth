@@ -385,3 +385,10 @@ $pc[31:0] =
     >>1$taken_br ? >>1$br_tgt_pc :
     >>1$pc[31:0] + 32'd4;
 ```
+
+### Testbench
+To conclude the first part of the RISC-V CPU development, a pass condition is added to the program to check if the result is correct:
+```
+*passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+```
+This line checks if the value in register 10 is equal to the sum of the numbers from 1 to 9. If it is, the simulation is passed, otherwise it runs until the maximum cycles of the simulation allowed by Makerchip.

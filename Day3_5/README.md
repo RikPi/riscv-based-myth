@@ -659,3 +659,13 @@ Additionally, we have to uncomment the macro at the end of the file:
 m4+dmem(@4)    // Args: (read/write stage)
 ```
 
+### Load/Store in Program
+Now that both load and store are implemented, we can try them by adding two instructions to the assembly program:
+```
+m4_asm(SW, r0, r10, 100)
+m4_asm(LW, r15, r0, 100)
+```
+These instructions store the value in register 10 to the memory address 100 and then load the value from the memory address 100 to register 15. To connect the *passed signal to this, we need to change the xreg address to 15, since the previous test was using register 10:
+```
+*passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
+```

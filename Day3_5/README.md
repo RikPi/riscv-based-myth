@@ -612,3 +612,27 @@ $pc[31:0] =
     >>1$inc_pc;
 ```
 
+### Load Data 1
+![Load data 1 diagram](/Day3_5/images/LoadDataDiagram.png)
+To correctly handle the load instruction, we will need to compute the address of the memory to be read from. This is done by adding the immediate to the value of the source register, exactly like an ADDI. Moreover, this operation is the same for a load and for a store instruction. We can then implement this calculation directly in the ALU mux by changing the ADDI ternary operation in:
+```
+//...
+($is_addi || $is_load || $is_s_instr) ? $src1_value + $imm : 
+//...
+```
+$is_s_instr is used because the only instruction of type s are store instructions.
+
+To load the data from the memory we need to implement the write mux, as shown at the start of the section, this is done by changing $rf_wr_en, $rf_wr_index and $rf_wr_data:
+```
+$rf_wr_en = ($rd_valid && $valid && $rd != 5'b0) ||>>2$valid_load;
+
+$rf_wr_index[4:0] = 
+    >>2$valid_load ? >>2$rd :
+    $rd;
+
+$rf_wr_data[31:0] = 
+    >>2$valid_load ? >>2$ld_data :
+    $result;
+```
+In this way, the write operation is enabled and performed with the data from 2 cycles ago if the instruction is a valid load instruction. This avoids the hazard.
+

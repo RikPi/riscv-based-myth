@@ -331,3 +331,13 @@ $src2_value[31:0] = $rf_rd_data2;
 In this way, we have saved the two output 32-bit values from the register memory to variables we will input to the ALU.
 
 ### ALU
+![ALU diagram](/Day3_5/images/ALUDiagram.png)
+The ALU (Arithmetic Logic Unit) is the core of the CPU, it is the block that performs the actual operations. It is essentially a mux that chooses the output based on the assembly instruction. Since we have added decoding support for ADD and ADDI, these two will be the operations implemented in the ALU for now:
+```
+//ALU
+$result[31:0] = 
+    $is_addi ? $src1_value + $imm :
+    $is_add ? $src1_value + $src2_value :
+    32'bx;
+```
+As written previousli, ADD sums together the values corresponding to addresses rs1 and rs2, while ADDI sums together the value corresponding to address rs1 and the immediate. The result is then stored in the $result variable, the output of the ALU. The ALU also has a default value of 32'bx, meaning that if the instruction is not ADD or ADDI, the output will be undefined.

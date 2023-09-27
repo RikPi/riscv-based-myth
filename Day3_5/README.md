@@ -462,3 +462,19 @@ The next step is partitioning the logic in the stages shown above. This means th
 m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
 ```
 
+### Register File Bypass
+To further improve the CPU, we need to make it capable of executing back-to-back instructions. This means that we could incur into a read after write hazard, because the ALU could give a result that is the same we need to read from the register file, but will be written in the next cycle. In this case, we need to be able to use the ALU result of the previous instruction to feed the current cycle ALU if the value we need from the register is the same that needs to be written next cycle. The hazard and its solution can be seen in the following image:
+![Register file bypass](/Day3_5/images/RegisterFileBypassBefore.png)
+
+As we can see, the solution is to use a bypass of the registry read. This means that we need to check if the register we need to read is the same that needs to be written next cycle. And if so, we can use $result as the ALU input. This is done by adding a mux for each ALU input, and the code is just modifying $src1_value and $src2_value as follows:
+```
+$src1_value[31:0] = 
+    (>>1$rf_wr_en && (>>1$rf_wr_index == $rf_rd_index1)) ? >>1$result :
+    $rf_rd_data1;
+$src2_value[31:0] = 
+    (>>1$rf_wr_en && (>>1$rf_wr_index == $rf_rd_index2)) ? >>1$result :
+    $rf_rd_data2;
+```
+Now, the architecture looks like this:
+![Register file bypass](/Day3_5/images/RegisterFileBypassAfter.png)
+

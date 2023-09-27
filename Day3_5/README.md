@@ -669,3 +669,48 @@ These instructions store the value in register 10 to the memory address 100 and 
 ```
 *passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
 ```
+
+### Jumps
+![Jumps diagram](/Day3_5/images/JumpDiagram.png)
+The last part of this CPU implementation is adding jump handling to the CPU. Jumps are unconditional branches, so they are similar to them when it comes to implementation.
+
+The first step is adding a signal that recognizes jumps:
+```
+$is_jump = $is_jal || $is_jalr; //JAL, JALR
+```
+With this signal we can then modify the $valid signal to alter the validity of cycles after a jump instruction is executed:
+```
+$valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load || >>1$valid_jump || >>2$valid_jump);
+```
+Where $valid_jump is:
+```
+$valid_jump = $valid && $is_jump;
+```
+Finally, we can modify also $pc to take into account the jump condition:
+```
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>3$valid_taken_br ? >>3$br_tgt_pc :
+    >>3$valid_load ? >>3$inc_pc :
+    >>3$valid_jump && >>3$is_jal ? >>3$br_tgt_pc :
+    >>3$valid_jump ? >>3$jalr_tgt_pc :
+    >>1$inc_pc;
+```
+Where $jalr_tgt_pc is:
+```
+$jalr_tgt_pc[31:0] = $src1_value + $imm;
+```
+We can notice that $br_tgt_pc is used for the JAL instruction, because the computation for the target address is done in the same way as a branch instruction.
+
+To test if this works, we can add a jump instruction to the end of the assembly program:
+```
+m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop).
+```
+This instruction jumps to itself, creating an infinite loop, making it easier to see if it is executed correctly by just looking at the VIZ tab in Makerchip, or at the Waveforms.
+
+And with this, a lot of struggle and fun, the CPU is now ready!
+
+[FULL CODE FOR THE CPU](https://github.com/RISCV-MYTH-WORKSHOP/riscv-myth-workshop-sep23-RikPi/blob/master/Day3_5/risc-v_solutions.tlv)
+
+The final diagram of the CPU synthetized by Makerchip is shown below:
+![Final diagram](/Day3_5/images/FinalMakerchipDiagram.png)

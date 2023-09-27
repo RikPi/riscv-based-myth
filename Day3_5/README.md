@@ -220,3 +220,31 @@ $funct7[6:0] = $instr[31:25];
 The $opcode field, $funct3 and $funct7[5] are used to determine the operation to be performed, while $rd, $rs1 and $rs2 are used to determine the registers to be used.
 
 ### RISC-V Instruction Field Decoding
+As we can notice from the previous sections' table, not all the fields are used in every instruction. This means that computing all of them for every instruction is a waste of resources. To avoid this, we can introduce validity conditions for each field decode operation, in this way the field gets decoded only if it makes sense. This is done by using the following code:
+```
+//Decode rd based on instr type
+$rd_valid = $is_r_instr || $is_i_instr || $is_u_instr || $is_j_instr;
+?$rd_valid
+    $rd[4:0] = $instr[11:7];
+
+//Decode rs2 based on instr type
+$rs2_valid = $is_r_instr || $is_s_instr || $is_b_instr;
+?$rs2_valid
+    $rs2[4:0] = $instr[24:20];
+
+//Decode rs1 based on instr type
+$rs1_valid = $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+?$rs1_valid
+    $rs1[4:0] = $instr[19:15];
+
+//Decode funct3 based on instr type
+$funct3_valid =  $is_r_instr || $is_i_instr || $is_s_instr || $is_b_instr;
+?$funct3_valid
+    $funct3[2:0] = $instr[14:12];
+
+//Decode funct7 based on instr type
+$funct7_valid = $is_r_instr;
+?$funct7_valid
+    $funct7[6:0] = $instr[31:25];
+```
+Now that we are decoding all the fields of the instruction, we can start thinking about the actual operations to be performed.

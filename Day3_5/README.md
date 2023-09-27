@@ -248,3 +248,74 @@ $funct7_valid = $is_r_instr;
     $funct7[6:0] = $instr[31:25];
 ```
 Now that we are decoding all the fields of the instruction, we can start thinking about the actual operations to be performed.
+
+### Instruction Decode
+We can now decode the whole instruction and match it to an assembly operation. Since the program we are trying to run is a program that sums numbers from 1 to 9, we will start with only the operations needed for that. The program's code is as follows:
+```
+// External to function:
+m4_asm(ADD, r10, r0, r0)             // Initialize r10 (a0) to 0.
+// Function:
+m4_asm(ADD, r14, r10, r0)            // Initialize sum register a4 with 0x0
+m4_asm(ADDI, r12, r10, 1010)         // Store count of 10 in register a2.
+m4_asm(ADD, r13, r10, r0)            // Initialize intermediate sum register a3 with 0
+// Loop:
+m4_asm(ADD, r14, r13, r14)           // Incremental addition
+m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
+m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
+m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
+```
+Thus, we need the operations:
+* **ADD**, that adds the values in registers rs1 and rs2 and stores the result in rd.
+* **ADDI**, that adds the value in register rs1 with the immediate and stores the result in rd.
+* **BLT**, that branches to the $pc+$imm instruction if the value in rs1 is less than the value in rs2.
+
+On top of this, we will also add decoding for:
+* **BEQ**, that branches to the $pc+$imm instruction if the value in rs1 is equal to the value in rs2.
+* **BNE**, that branches to the $pc+$imm instruction if the value in rs1 is not equal to the value in rs2.
+* **BGE**, that branches to the $pc+$imm instruction if the value in rs1 is greater than or equal to the value in rs2.
+* **BLTU**, that branches to the $pc+$imm instruction if the value in rs1 is less than the value in rs2, unsigned.
+* **BGEU**, that branches to the $pc+$imm instruction if the value in rs1 is greater than or equal to the value in rs2, unsigned.
+
+This decoding can be achieved by chaining the bits using for recognizing the operations and checking them using this table:
+![Operation decode table](/Day3_5/images/OperationDecodeTable.png)
+
+The code is as follows:
+```
+//Decode assembly instructions
+$dec_bits[10:0] = {$funct7[5], $funct3, $opcode}; //Bits for decoding
+
+$is_beq = $dec_bits ==? 11'bx_000_1100011; //BEQ
+$is_bne = $dec_bits ==? 11'bx_001_1100011; //BNE
+$is_blt = $dec_bits ==? 11'bx_100_1100011; //BLT
+$is_bge = $dec_bits ==? 11'bx_101_1100011; //BGE
+$is_bltu = $dec_bits ==? 11'bx_110_1100011; //BLTU
+$is_bgeu = $dec_bits ==? 11'bx_111_1100011; //BGEU
+$is_addi = $dec_bits ==? 11'bx_000_0010011; //ADDI
+$is_add = $dec_bits ==? 11'b0_000_0110011; //ADD
+```
+The $dec_bits variable is used to decode the operation, it is a concatenation of the $funct7[5], $funct3 and $opcode bits. Once they are chained together, we can compare them to the values in the table using the ==? operator because of the presence of don't care bits. In fact, we are using the $funct7[5] bit even if it is not valid for most of the operations, but in this way we can just have a single $dec_bits variable for all the operations.
+
+### Register File Read (part 1)
+
+The register file is a memory block that stores the values of the registers. It has 2 read ports and 1 write port. The read ports are used to read the values of the registers, while the write port is used to write the values in the registers. The register file is a macro that has 7 inputs and 2 outputs. The inputs are:
+* Read addresses $rf_rd_index1 and $rf_rd_index2, that are used to select the registers to be read.
+* Write address $rf_wr_index, that is used to select the register to be written to.
+* The read/write enable signals $rf_ed_en1, $rf_rd_en2 and $rf_wr_en, that are used to enable the read and write operations.
+* The write data $rf_wr_data, that is used to write the value in the $rf_wr_index register.
+
+The outputs are the read data signals($rf_rd_data1 and $rf_rd_data2), that are used to read the values of the registers indexed by $rf_rd_index1 and $rd_rd_index2.
+![Register file diagram](/Day3_5/images/RegisterFileDefinition.png)
+We are now interested in setting up the read operations by firstly enabling read and passing the indexes to the register file. This is done by using the following code:
+```
+//Read data from register file
+//Enable rd 1 with rs 1
+$rf_rd_en1 = $rs1_valid;
+//Give index to rd 1
+$rf_rd_index1[4:0] = $rs1;
+
+//Enable rd 2 with rs 2
+$rf_rd_en2 = $rs2_valid;
+//Give index to rd 2
+$rf_rd_index2[4:0] = $rs2;
+```
+Since rs1 and rs2 are the addresses of the registers to be read, we can use their validity condition to enable the read operation. The indexes are then passed to the register file.

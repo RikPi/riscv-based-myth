@@ -500,3 +500,52 @@ $pc[31:0] =
 ```
 With this change, we increase the $pc with the one from the previous cycle again, whereas the $br_tgt_pc is still delayed by 3 cycles.
 
+### Complete Instruction Decode
+All the remaining instructions are now implemented to the instruction decoder. The code is as follows:
+```
+$is_lui = $dec_bits ==? 11'bx_xxx_0110111; //LUI
+$is_auipc  = $dec_bits ==? 11'bx_xxx_0010111; //AUIPC
+$is_jal = $dec_bits ==? 11'bx_xxx_1101111; //JAL
+$is_jalb = $dec_bits ==? 11'bx_000_1100111; //JALR
+$is_lb = $dec_bits ==? 11'bx_000_0000011; //LB
+$is_lh = $dec_bits ==? 11'bx_001_0000011; //LH
+$is_lw = $dec_bits ==? 11'bx_010_0000011; //LW
+$is_lbu = $dec_bits ==? 11'bx_100_0000011; //LBU
+$is_lhu = $dec_bits ==? 11'bx_101_0000011; //LHU
+$is_sb = $dec_bits ==? 11'bx_000_0100011; //SB
+$is_sh = $dec_bits ==? 11'bx_001_0100011; //SH
+$is_sw = $dec_bits ==? 11'bx_010_0100011; //SW
+$is_slti = $dec_bits ==? 11'bx_010_0010011; //SLTI
+$is_sltiu = $dec_bits ==? 11'bx_011_0010011; //SLTIU
+$is_xori = $dec_bits ==? 11'bx_100_0010011; //XORI
+$is_ori = $dec_bits ==? 11'bx_110_0010011; //ORI
+$is_andi = $dec_bits ==? 11'bx_111_0010011; //ANDI
+$is_slli = $dec_bits ==? 11'b0_001_0010011; //SLLI
+$is_srli = $dec_bits ==? 11'b0_101_0010011; //SRLI
+$is_sral = $dec_bits ==? 11'b1_101_0010011; //SRAI
+$is_sub = $dec_bits ==? 11'b1_000_0110011; //SUB
+$is_sll = $dec_bits ==? 11'b0_001_0110011; //SLL
+$is_slt = $dec_bits ==? 11'b0_010_0110011; //SLT
+$is_sltu = $dec_bits ==? 11'b0_011_0110011; //SLTU
+$is_xor = $dec_bits ==? 11'b0_100_0110011; //XOR
+$is_srl = $dec_bits ==? 11'b0_101_0110011; //SRL
+$is_sra = $dec_bits ==? 11'b1_101_0110011; //SRA
+$is_or = $dec_bits ==? 11'b0_110_0110011; //OR
+$is_and = $dec_bits ==? 11'b0_111_0110011; //AND
+$is_load = $opcode == 7'b0000011; //LB, LH, LW, LBU, LHU
+```
+The following instructions were implemented:
+* **LUI** (Load Upper Immediate), that  places the U-immediate value in the top 20 bits of the destination register rd, filling in the lowest 12 bits with zeros.
+* **AUIPC** (Add Upper Immediate to PC), that forms a 32-bit offset from the 20-bit U-immediate, filling in the lowest 12 bits with zeros, adds this offset to the pc, then places the result in register rd.
+* **JAL** (Jump and Link), uses the J-type format, where the J-immediate encodes a signed offset in multiples of 2 bytes. The offset is sign-extended and added to the pc to form the jump target address. Jumps can therefore target a ±1 MiB range. JAL stores the address of the instruction following the jump (pc+4) into register rd. The standard software calling convention uses x1 as the return address register and x5 as an alternate link register.
+* **JALR** (Jump and Link Register), uses the I-type format.  The target address is obtained by adding the 12-bit signed I-immediate to the register rs1, then setting the least-significant bit of the result to zero. The address of the instruction following the jump (pc+4) is written to register rd. Register x0 can be used as the destination if the result is not required
+* **SB, SH, SW** (Store instructions), that store a value from a register to memory. SB stores a byte, SH stores a halfword (16 bits) and SW stores a word (32 bits).
+* **SLTI, SLTIU** (Set Less Than Immediate), that sets the destination register to 1 if the source register is less than the immediate, otherwise sets the destination register to 0. SLTIU is the unsigned version.
+* **XORI, ORI, ANDI** (Bitwise instructions), that perform bitwise operations between the source register and the immediate and store the result in the destination register. XORI performs a XOR, ORI performs a OR and ANDI performs a AND.
+* **SLLI, SRLI, SRAI** (Shift instructions), that perform a shift operation on the source register by the immediate and store the result in the destination register. SLLI performs a left shift, SRLI performs a right shift and SRAI performs an arithmetic right shift.
+* **SUB** (Subtract), that subtracts the value in the source registers and stores the result in the destination register.
+* **SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND** (Arithmetic instructions), that perform arithmetic operations between the source registers and store the result in the destination register. SLL performs a left shift, SLT performs a signed less than, SLTU performs an unsigned less than, XOR performs a XOR, SRL performs a right shift, SRA performs an arithmetic right shift, OR performs a OR and AND performs an AND.
+* **LB, LH, LW, LBU, LHU** (Load instructions), that load a value from memory to a register. LB loads a byte, LH loads a halfword (16 bits), LW loads a word (32 bits), LBU loads a byte unsigned and LHU loads a halfword unsigned.
+
+Since we are implementing a reduced and easier CPU, all the load instructions are implemented together in the $is_load condition, that is true if the opcode is 7'b0000011. This is possible because the load instructions all have the same opcode.
+

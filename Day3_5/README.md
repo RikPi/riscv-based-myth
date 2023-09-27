@@ -636,3 +636,26 @@ $rf_wr_data[31:0] =
 ```
 In this way, the write operation is enabled and performed with the data from 2 cycles ago if the instruction is a valid load instruction. This avoids the hazard.
 
+### Load Data 2
+In this section, we will need to instantiate the DMem macro and connect the load and store operations to it. The block is shown below:
+![DMem diagram](/Day3_5/images/DMemDiagram.png)
+
+Its implementation in code is as follows:
+```
+@4
+    //Implement DMEM
+    $dmem_rd_en = $is_load;
+    $dmem_wr_en = $valid && $is_s_instr;
+    $dmem_addr[3:0] = $result[5:2];
+    $dmem_wr_data[31:0] = $src2_value;
+
+@5
+    $ld_data = $dmem_rd_data;
+```
+The $dmem_rd_en signal is pulled high when the instruction is a load instruction, while the $dmem_wr_en signal is pulled high when the instruction is a store instruction and the $valid signal is high. The $dmem_addr is the address of the memory to be read from or written to, while the $dmem_wr_data is the data to be written to the memory. Finally, the $ld_data is the data read from the memory.
+
+Additionally, we have to uncomment the macro at the end of the file:
+```
+m4+dmem(@4)    // Args: (read/write stage)
+```
+

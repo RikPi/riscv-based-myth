@@ -478,3 +478,25 @@ $src2_value[31:0] =
 Now, the architecture looks like this:
 ![Register file bypass](/Day3_5/images/RegisterFileBypassAfter.png)
 
+### Branches
+![Branches diagram](/Day3_5/images/BranchesDiagramFinal.png)
+
+To avoid the control flow hazard, we need to correct the branch target path. We can redirect the $pc to the cycle in which we compute the branch target, thus we have to jump two cycles before the branch instruction as shown in the following image:
+![Branches diagram](/Day3_5/images/BranchesDiagramJump.png)
+
+The code to achieve this is fairly simple, we need to define a new $valid variable:
+```
+//Validity based on branching
+$valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
+```
+Since we are not executing instruction every third cycle anymore, the previous definition of $valid is not used anymore. This new definition checks if there is any valid branching taken in the previous two cycles, and if so, it pulls the $valid signal low. In this way, the branching is taken only in the third cycle after the branch instruction, when the $pc target is computed.
+
+We also have to adjust the alignment of the $pc variable, since we are now running back-to-back instructions:
+```
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>3$valid_taken_br ? >>3$br_tgt_pc : 
+    >>1$inc_pc;
+```
+With this change, we increase the $pc with the one from the previous cycle again, whereas the $br_tgt_pc is still delayed by 3 cycles.
+

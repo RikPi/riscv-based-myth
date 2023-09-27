@@ -5,6 +5,8 @@ Welcome to the section where I illustrate the parts of TL-Verilog code developed
 
 It was a very tough course, but it was rewarding and well explained! I had a lot of fun and I feel like that I learned a lot.
 
+**If you want to connect with me, just shoot me a message on [LinkedIn](https://www.linkedin.com/in/rikpi/) or you can find me on the course Slack!**
+
 ## Calculator
 All the versions of the calculator had been saved in different Makerchip Sandboxes, making it possible to simulate it step by step. Unfortunately, due to a bug in Makerchip, the Sandboxes are no longer available.
 

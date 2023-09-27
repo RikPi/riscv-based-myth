@@ -341,3 +341,17 @@ $result[31:0] =
     32'bx;
 ```
 As written previousli, ADD sums together the values corresponding to addresses rs1 and rs2, while ADDI sums together the value corresponding to address rs1 and the immediate. The result is then stored in the $result variable, the output of the ALU. The ALU also has a default value of 32'bx, meaning that if the instruction is not ADD or ADDI, the output will be undefined.
+
+### Register File Write
+![Register file write diagram](/Day3_5/images/RegisterWriteDiagram.png)
+After performing the calculations in the ALU, the result needs to be written back to the register file. This is done by using the following code:
+```
+//Write to register file
+//Enable if $rd_valid and $rd != 0
+$rf_wr_en = $rd_valid && $rd != 5'b0;
+//Give index
+$rf_wr_index[4:0] = $rd;
+//Write result of ALU
+$rf_wr_data[31:0] = $result;
+```
+As we can note, the write operation is enabled only if the instruction contains a $rd value and if it is not zero. This second condition is needed because the register file's zero register is hardwired to 0 and cannot be written to. After this, the index and the data are passed to the register file.

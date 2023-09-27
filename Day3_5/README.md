@@ -173,3 +173,22 @@ For each type of instruction, we have a binary signal that is high when the inst
 
 We now have a working instruction type decoder, but we still need to decode the instruction itself.
 
+### Instruction Immediate Decoding
+The immediate is an important field of the instructions, carrying with it the value to be used in the operation. The immediate can be of different sizes, depending on the instruction type. The following table shows the different encodings:
+![Immediate encodings](/Day3_5/images/InstructionImmediateTable.png)
+As it can be noticed, the R-instruction is missing: this is because the immediate is not present in this type of instruction and it is defaulted to 32'b0 a 32-bit zero. To decode the immediate, we use the ternary operator, effectively creating a mux, the code is as follows:
+```
+//Immediate decoding using types
+$imm[31:0] = 
+    $is_i_instr ? { {21{$instr[31]}}, $instr[30:20] } :
+    $is_s_instr ? { {21{$instr[31]}}, $instr[30:25], $instr[11:7] } :
+    $is_b_instr ? { {20{$instr[31]}}, $instr[7], $instr[30:25], $instr[11:8], 1'b0 } :
+    $is_u_instr ? { $instr[31:12], 12'b0 } :
+    $is_j_instr ? { {12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0 } :
+    32'b0; //R instruction
+```
+This code also shows us some rather interesting and useful syntax of TL-Verilog regarding bit chaining:
+* Bits can be chained using curly brackets and comma separation, for example {a,b,c} concatenates a, b and c.
+* Bits can be repeated using curly brackets and the number of repetitions, for example {5{a}} concatenates a 5 times.
+
+Now that the immediate is decoded, we are missing the other functions of the instruction, such as the registers to be used.

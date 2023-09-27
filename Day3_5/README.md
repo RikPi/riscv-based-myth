@@ -549,3 +549,34 @@ The following instructions were implemented:
 
 Since we are implementing a reduced and easier CPU, all the load instructions are implemented together in the $is_load condition, that is true if the opcode is 7'b0000011. This is possible because the load instructions all have the same opcode.
 
+### Complete ALU
+Now that we correctly decode all the instructions, we need to implement them in the ALU. The following is the completed ALU:
+```
+//ALU
+$result[31:0] = 
+    $is_addi ? $src1_value + $imm :
+    $is_add ? $src1_value + $src2_value :
+    $is_andi ? $src1_value & $imm :
+    $is_ori ? $src1_value | $imm :
+    $is_xori ? $src1_value ^ $imm :
+    $is_slli ? $src1_value << $imm[5:0] :
+    $is_srli ? $src1_value >> $imm[5:0] :
+    $is_and ? $src1_value & $src2_value :
+    $is_or ? $src1_value | $src2_value :
+    $is_xor ? $src1_value ^ $src2_value :
+    $is_sub ? $src1_value - $src2_value :
+    $is_sll ? $src1_value << $src2_value[4:0] :
+    $is_srl ? $src1_value >> $src2_value[4:0] :
+    $is_sltu ? $src1_value < $src2_value :
+    $is_sltiu ? $src1_value < $imm :
+    $is_lui ? {$imm[31:12], 12'b0} :
+    $is_auipc ? $pc + $imm :
+    $is_jal ? $pc + 4 :
+    $is_jalr ? $pc + 4 :
+    $is_srai ? { {32{$src1_value[31]}}, $src1_value} >> $imm[4:0] :
+    $is_slt ? ($src1_value[31] == $src2_value[31]) ? $sltu_rslt : {31'b0,$src1_value[31]} :
+    $is_slti ? ($src1_value[31] == $imm[31]) ? $sltiu_rslt : {31'b0,$src1_value[31]} :
+    $is_sra ? { {32{$src1_value[31]}}, $src1_value} >> $src2_value[4:0] :
+    32'bx;
+```
+

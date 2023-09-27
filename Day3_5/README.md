@@ -192,3 +192,31 @@ This code also shows us some rather interesting and useful syntax of TL-Verilog 
 * Bits can be repeated using curly brackets and the number of repetitions, for example {5{a}} concatenates a 5 times.
 
 Now that the immediate is decoded, we are missing the other functions of the instruction, such as the registers to be used.
+
+### Instruction Decode
+In this lab, we will decode the other fields of the instruction as seen in the following image:
+![Instruction decode table](/Day3_5/images/InstructionDecodeTable.png)
+
+The RISC-V ISA is built in such a way that the fields are always in the same position, regardless of the instruction type. This means that we can easily decode them using the following code:
+```
+//Decode opcode
+$opcode[6:0] = $instr[6:0];
+
+//Decode rd
+$rd[4:0] = $instr[11:7];
+
+//Decode rs2
+$rs2[4:0] = $instr[24:20];
+
+//Decode rs1
+$rs1[4:0] = $instr[19:15];
+
+//Decode funct3
+$funct3[2:0] = $instr[14:12];
+
+//Decode funct7
+$funct7[6:0] = $instr[31:25];
+```
+The $opcode field, $funct3 and $funct7[5] are used to determine the operation to be performed, while $rd, $rs1 and $rs2 are used to determine the registers to be used.
+
+### RISC-V Instruction Field Decoding

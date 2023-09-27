@@ -355,3 +355,21 @@ $rf_wr_index[4:0] = $rd;
 $rf_wr_data[31:0] = $result;
 ```
 As we can note, the write operation is enabled only if the instruction contains a $rd value and if it is not zero. This second condition is needed because the register file's zero register is hardwired to 0 and cannot be written to. After this, the index and the data are passed to the register file.
+
+### Branches (part 1)
+![Branches diagram](/Day3_5/images/Branches1Diagram.png)
+The branch instructions are used to change the flow of the program. They are used to jump to a different instruction based on a condition. The condition is determined by the values of the registers rs1 and rs2. The first step is to determine if a branch has been taken, based on the current instruction and the values of the values read from the memory. This is done by using the following code:
+```
+//Branching implementation
+$taken_br = 
+    $is_beq ? ($src1_value == $src2_value) :
+    $is_bne ? ($src1_value != $src2_value) :
+    $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])) :
+    $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])) :
+    $is_bltu ? ($src1_value < $src2_value) :
+    $is_bgeu ? ($src1_value >= $src2_value) :
+    1'b0;
+```
+In this way, we have a binary signal that is high when the branch is taken by computing the condition related to the specific branch instruction. For example, in the case of a BEQ, the program evaluates if the two values are equal and sets the $taken_br signal high if they are. Thus, we know if a branching instruction is called and if the branch is taken. The default value of $taken_br is 1'b0, meaning that if the instruction is not a branch, the branch is not taken.
+
+### Branches (part 2)

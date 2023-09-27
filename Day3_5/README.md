@@ -453,3 +453,12 @@ $pc[31:0] =
     >>3$inc_pc;
 ```
 The $inc_pc variable is introduced here and is the $pc incremented by 32'd4, while the $br_tgt_pc is the $pc incremented by the immediate. The >>3 operator is used to delay the value by 3 cycles, in order to align the $pc change with the branch instruction.
+
+### 3-Cycle RISC-V (part 2)
+![3-Cycle RISC-V diagram](/Day3_5/images/3CycleRISCV2.png)
+
+The next step is partitioning the logic in the stages shown above. This means that we need to refactor the code as shown in [this commit](https://github.com/RISCV-MYTH-WORKSHOP/riscv-myth-workshop-sep23-RikPi/commit/e75c2098cbb4a6ea2e61b1a2f654cf9062325021). After doing this, we proceed to change the stage values for the m4+rf macro to reflect which stages read and write are now in. This means that now:
+```
+m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
+```
+

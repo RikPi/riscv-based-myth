@@ -422,3 +422,14 @@ Now, there is no hazard in place and this can be further noted in the following 
 ![Waterfall logic diagram](/Day3_5/images/WaterfallLogicDiagram.png)
 
 We can observe that all the values are now consumed in the correct cycle, avoiding any hazard. This is a very simple way of avoiding hazards, but it is not very efficient since we are only using the CPU every third cycle.
+
+### 3-cycle $valid
+The first step to pipeline the CPU is to add a 3-cycle validity signal. This means that the CPU will be used every 3 cycles, as seen in the previous section. This is done by using the following code:
+```
+//Start pulse right after reset was 1 in previous cycle
+$start = (!$reset && >>1$reset);
+//Valid pulse every 3 cycles
+$valid = ($start ==? 1 || >>3$valid ==? 1 && !$reset);
+```
+The $start signal is pulled high the cycle in which the $reset signal is first pulled low. The $valid signal is pulled high every 3 cycles starting from the cycle the $start signal is first pulled high. This is done by using the >>3 operator, that delays the value by 3 cycles. This is all until the $reset signal is pulled high, in which case the $valid signal is pulled low. The signal waveforms can be seen below:
+![Valid waveform](/Day3_5/images/3CycleValid.png)

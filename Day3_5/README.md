@@ -433,3 +433,23 @@ $valid = ($start ==? 1 || >>3$valid ==? 1 && !$reset);
 ```
 The $start signal is pulled high the cycle in which the $reset signal is first pulled low. The $valid signal is pulled high every 3 cycles starting from the cycle the $start signal is first pulled high. This is done by using the >>3 operator, that delays the value by 3 cycles. This is all until the $reset signal is pulled high, in which case the $valid signal is pulled low. The signal waveforms can be seen below:
 ![Valid waveform](/Day3_5/images/3CycleValid.png)
+
+### 3-Cycle RISC-V (part 1)
+![3-Cycle RISC-V diagram](/Day3_5/images/3CycleRISCV1.png)
+
+Now, we need to avoid writing to the memory when the $valid signal is low. This is done by modifying the $rf_wr_en code:
+```
+$rf_wr_en = $rd_valid && $valid && $rd != 5'b0;
+```
+In a similar way, we have to avoid branching in invalid cycles. This is done by introducing $valid_taken_br:
+```
+$valid_taken_br = $valid && $taken_br;
+```
+Finally, we need to take care of the $pc by correctly aligning the $pc increment and branch instruction. This is done by using the following code:
+```
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>3$valid_taken_br ? >>3$br_tgt_pc :
+    >>3$inc_pc;
+```
+The $inc_pc variable is introduced here and is the $pc incremented by 32'd4, while the $br_tgt_pc is the $pc incremented by the immediate. The >>3 operator is used to delay the value by 3 cycles, in order to align the $pc change with the branch instruction.

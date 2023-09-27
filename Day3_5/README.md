@@ -589,3 +589,26 @@ Since for SLTU and SLTIU there is the need of intermediate operations, we need t
     $sltiu_rslt[31:0] = $src1_value < $imm;
 ```
 
+### Redirect Loads
+One of the last steps before finishing the RISC-V CPU implementation is to add load and store instructions to the code. For both these instructions, we are just going to support LW and SW. For the address of the instructions, the operation is the same of the ADDI.
+
+From the following image, we can see the logic diagram of the load and store instructions. We cannot write the register file with the freshly loaded value in the same cycle, because we are incurring again in a read after write hazard.
+![Load and store logic diagram](/Day3_5/images/LoadStoreDiagram.png)
+
+The solution for this is, as we did before for the branches, to compute a validity condition and delay the instruction until it is ready. To achieve this, we need to modify $valid similairly to what we did for the branches:
+```
+$valid = !(>>1$valid_taken_br || >>2$valid_taken_br || >>1$valid_load || >>2$valid_load);
+```
+Where $valid_load is:
+```
+$valid_load = $valid && $is_load;
+```
+Finally, we can modify also $pc to take into account the load condition:
+```
+$pc[31:0] =
+    >>1$reset ? 32'd0 :
+    >>3$valid_taken_br ? >>3$br_tgt_pc :
+    >>3$valid_load ? >>3$inc_pc :
+    >>1$inc_pc;
+```
+

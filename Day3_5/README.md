@@ -121,3 +121,17 @@ $pc[31:0] =
     >>1$pc[31:0] + 32'd4;
 ```
 The >>1 operator is used to increment the previous cycle's value of $pc. When reset pulls high, $pc gets reset to 0.
+
+### Fetch
+During this lab, the $pc is used as the address of the instruction memory to fetch. To achieve this, the instruction memory read is enabled by setting $imem_rd_en to 1 when no reset signal is present and the addesss is set as follows:
+```
+$imem_rd_en = !$reset;
+$imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
+```
+The constant M4_IMEM_INDEX_CNT represents the size of the instruction memory.
+
+After this, the memory is read to get the $instr value, which is the instruction to be executed. This happens in the next cycle, as shown below:
+```
+@1
+    $instr[31:0] = $imem_rd_data[31:0];
+```

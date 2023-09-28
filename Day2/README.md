@@ -104,3 +104,69 @@ int main() {
         return 0;
 }
 ```
+
+## Lab for ABI (Application Binary Interface) function calls
+In this lab, we will integrate assembly code with C code. We will write a C program that calls an assembly function that calculates the sum of the numbers from 1 to 9. The C code is the following:
+```c
+#include <stdio.h>
+
+extern int load(int x, int y);
+
+int main() {
+	int result = 0;
+	int count = 9;
+	result = load(0x0, count+1);
+	printf("Sum of number from 1 to %d is %d\n", count, result);
+}
+```
+The assembly code in the function load is the following:
+```assembly
+.section .text
+.global load
+.type load, @function
+
+load:
+	add 	a4, a0, zero //Initialize sum register a4 with 0x0
+	add 	a2, a0, a1   // store count of 10 in register a2. Register a1 is loaded with 0xa (decimal 10) from main program
+	add	a3, a0, zero // initialize intermediate sum register a3 by 0
+loop:	add 	a4, a3, a4   // Incremental addition
+	addi 	a3, a3, 1    // Increment intermediate register by 1	
+	blt 	a3, a2, loop // If a3 is less than a2, branch to label named <loop>
+	add	a0, a4, zero // Store final result to register a0 so that it can be read by main program
+	ret
+```
+This time, to compile the code, we have to use the following command:
+```bash
+riscv64-unknown-elf-gcc -O1 -mabi=lp64 -march=rv64i -o 1ton_custom.o 1ton_custom.c load.S
+```
+When we dump the assembly code we can see both the main function and the load function:
+```assembly
+00000000000100b0 <main>:
+   100b0:       ff010113                addi    sp,sp,-16
+   100b4:       00a00593                li      a1,10
+   100b8:       00000513                li      a0,0
+   100bc:       00113423                sd      ra,8(sp)
+   100c0:       0fc000ef                jal     ra,101bc <load>
+   100c4:       00050613                mv      a2,a0
+   100c8:       00021537                lui     a0,0x21
+   100cc:       00900593                li      a1,9
+   100d0:       1a050513                addi    a0,a0,416 # 211a0 <__clzdi2+0x3c>
+   100d4:       360000ef                jal     ra,10434 <printf>
+   100d8:       00813083                ld      ra,8(sp)
+   100dc:       00000513                li      a0,0
+   100e0:       01010113                addi    sp,sp,16
+   100e4:       00008067                ret
+
+00000000000101bc <load>:
+   101bc:       00050733                add     a4,a0,zero
+   101c0:       00b50633                add     a2,a0,a1
+   101c4:       000506b3                add     a3,a0,zero
+
+00000000000101c8 <loop>:
+   101c8:       00e68733                add     a4,a3,a4
+   101cc:       00168693                addi    a3,a3,1
+   101d0:       fec6cce3                blt     a3,a2,101c8 <loop>
+   101d4:       00070533                add     a0,a4,zero
+   101d8:       00008067                ret
+```
+The main function starts at address 100b0, the load function starts at address 101bc and the loop function is at address 101c8. We can see that the main function calls the load function at address 101bc and then stores the result in register a2. The result is then printed by the printf function.

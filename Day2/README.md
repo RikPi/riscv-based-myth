@@ -1,5 +1,3 @@
-**WORK IN PROGRESS**
-
 # Introduction
 Welcome to the section where the first two days of the course will be covered. In the first days, we have explored the RISC-V ISA and the GNU compiler toolchain. We have also learned how to write C code and compile it to RISC-V assembly, how to use the RISC-V ISA simulator to run our code and debug it.
 
@@ -170,3 +168,43 @@ When we dump the assembly code we can see both the main function and the load fu
    101d8:       00008067                ret
 ```
 The main function starts at address 100b0, the load function starts at address 101bc and the loop function is at address 101c8. We can see that the main function calls the load function at address 101bc and then stores the result in register a2. The result is then printed by the printf function.
+
+## Verification flow
+After cloning the lab repository:
+```bash
+git clone https://github.com/kunalg123/riscv_workshop_collaterals.git
+```
+We will need the following files:
+* ```picorv32.v```, a Verilog implementation of a small RISC-V core,
+* ```testbench.v```, a testbench for testing the core,
+* ```rv32im.sh```, a script that outputs a hex file with the instructions to be executed by the core.
+
+This is the content of the rv32im.sh script:
+```bash
+riscv64-unknown-elf-gcc -c -mabi=ilp32 -march=rv32im -o 1to9_custom.o 1to9_custom.c 
+riscv64-unknown-elf-gcc -c -mabi=ilp32 -march=rv32im -o load.o load.S
+
+riscv64-unknown-elf-gcc -c -mabi=ilp32 -march=rv32im -o syscalls.o syscalls.c
+riscv64-unknown-elf-gcc -mabi=ilp32 -march=rv32im -Wl,--gc-sections -o firmware.elf load.o 1to9_custom.o syscalls.o -T riscv.ld -lstdc++
+chmod -x firmware.elf
+riscv64-unknown-elf-gcc -mabi=ilp32 -march=rv32im -nostdlib -o start.elf start.S -T start.ld -lstdc++
+chmod -x start.elf
+riscv64-unknown-elf-objcopy -O verilog start.elf start.tmp
+riscv64-unknown-elf-objcopy -O verilog firmware.elf firmware.tmp
+cat start.tmp firmware.tmp > firmware.hex
+python3 hex8tohex32.py firmware.hex > firmware32.hex
+rm -f start.tmp firmware.tmp
+iverilog -o testbench.vvp testbench.v picorv32.v
+chmod -x testbench.vvp
+vvp -N testbench.vvp
+```
+The script first compiles the C and assembly code to object files, then it links them to create the firmware.elf file. It then compiles the start.S file and links it to create the start.elf file. The start.elf and firmware.elf files are then converted to hex files and concatenated to create the firmware.hex file. The firmware.hex file is then converted to a 32-bit hex file and the testbench is compiled and executed using iverilog.
+
+The result of the testbench execution is the following:
+```bash
+vsduser@vsduser-VirtualBox:~/riscv_workshop_collaterals/labs$ ./rv32im.sh 
+Sum of number from 1 to 2 is 3
+TRAP
+```
+
+In this part of the course we have learned the absolute basics of RISC-V ABI, how to compile and execute C code on a RISC-V simulator, how to write assembly code and integrate it with C code and how to verify the functionality of a RISC-V core using a testbench.

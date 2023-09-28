@@ -78,3 +78,29 @@ This, in case of the -Ofast compilation, will execute the first instruction of t
 reg 0 a0
 ```
 This would show us the value of the a0 register at the current instruction.
+
+## Signed and Unsigned
+In this lab, we learn about signed and unsigned variables. An unsigned 64-bit int is represented by the type unsigned long long int and can have a maximum value of $2^{64}-1$. To try and use this type, we can use the following C code:
+```c
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+        unsigned long long int max = (long long int) (pow(2,64) -1);
+        printf("highest number represented by unsigned long long int is %llu\n", max);
+        return 0;
+}       
+```
+Signed 64-bit integers, since they also have to store the sign, can only represent numbers from $-2^{63}$ to $2^{63}-1$. To try and use the long long int type, we can use the following C code:
+```c
+#include <stdio.h>
+#include <math.h>
+
+int main() {
+        long long int max = (long long int) (pow(2,63)-1);
+	long long int min = (long long int) (pow(2,63)*-1);
+        printf("highest number represented by long long int is %lld\n", max);
+	printf("lowest number represented by long long int is %lld\n", min);
+        return 0;
+}
+```

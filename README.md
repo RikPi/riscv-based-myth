@@ -1,6 +1,9 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-718a45dd9cf7e7f842a935f5ebbe5719a5e09af4491e668f4dbf3b35d5cca122.svg)](https://classroom.github.com/online_ide?assignment_repo_id=12004421&assignment_repo_type=AssignmentRepo)
-# RISC-V_MYTH_Workshop
+# Welcome to the repository!
 
-For students of "Microprocessor for You in Thirty Hours" Workshop, offered by for VLSI System Design (VSD) and Redwood EDA, find here accompanying live info and links.
+This repository showcases my work during the course RISC-V Based MYTH during a (very intense) week in September 2023.
 
-Check the folders for assignments for particular days.
+To red the full documentation and see all the steps and code, please head to:
+* Day 1-2, for some basis on compiling, simulating and debugging
+* Day 3-4-5, for the TL-Verilog implementation of the calculator (day 3) and the pipelined RISC-V CPU architecture (day 4-5).
+
+Enjoy and please feel free to contact me via issues :)
